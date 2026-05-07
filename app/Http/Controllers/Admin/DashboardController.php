@@ -12,7 +12,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $allowedSorts = ['name', 'price_in_mills', 'quantity_available', 'created_at', 'updated_at'];
+        $allowedSorts = ['name', 'price_in_mills', 'quantity_available', 'updated_at'];
         $allowedDirections = ['asc', 'desc'];
 
         $sort = in_array($request->sort, $allowedSorts) ? $request->sort : null;
@@ -33,12 +33,23 @@ class DashboardController extends Controller
                 'price_in_mills' => $product->price_in_mills,
                 'quantity_available' => $product->quantity_available,
                 'stock_status' => $product->stock_status->value,
-                'created_at' => $product->created_at->toISOString(),
                 'updated_at' => $product->updated_at->toISOString(),
             ]);
 
+        $inventorySummary = [
+            'total_units' => Product::query()->sum('quantity_available'),
+            'low_stock_count' => Product::query()
+                ->where('quantity_available', '>', 0)
+                ->where('quantity_available', '<=', 5)
+                ->count(),
+            'out_of_stock_count' => Product::query()
+                ->where('quantity_available', 0)
+                ->count(),
+        ];
+
         return Inertia::render('Admin/Dashboard', [
             'products' => $products,
+            'inventorySummary' => $inventorySummary,
             'filters' => $request->only('search', 'sort', 'direction'),
         ]);
     }

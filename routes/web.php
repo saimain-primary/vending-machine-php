@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Auth\LoginController;
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:admin')->group(function () {
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/admin/inventory', [AdminInventoryController::class, 'index'])->name('admin.inventory.index');
         Route::get('/admin/orders', [AdminOrderController::class, 'index'])->name('admin.orders.index');
 
         Route::get('/admin/products', [AdminProductController::class, 'index'])->name('admin.products.index');

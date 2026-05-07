@@ -1,10 +1,8 @@
 <?php
 
+use App\Enums\StockMovementType;
 use App\Models\Product;
-use App\Models\Transaction;
 use App\Models\User;
-
-// --- Index ---
 
 test('product listing page is publicly accessible', function () {
     $this->get('/')->assertStatus(200);
@@ -69,8 +67,6 @@ test('product listing includes isAdmin flag for logged-in admin', function () {
         ->assertInertia(fn ($page) => $page->where('isAdmin', true));
 });
 
-// --- Show ---
-
 test('product detail page is publicly accessible', function () {
     $product = Product::factory()->create(['slug' => 'test-product']);
 
@@ -92,8 +88,6 @@ test('product detail page returns 404 for unknown slug', function () {
     $this->get('/products/nonexistent-slug')->assertStatus(404);
 });
 
-// --- Buy ---
-
 test('guests cannot purchase products', function () {
     $product = Product::factory()->create(['quantity_available' => 5, 'slug' => 'buyable']);
 
@@ -114,6 +108,13 @@ test('customer can purchase an in-stock product', function () {
         'product_id' => $product->id,
         'quantity' => 1,
         'unit_price_in_mills' => $product->price_in_mills,
+    ]);
+    $this->assertDatabaseHas('stock_movements', [
+        'product_id' => $product->id,
+        'user_id' => $user->id,
+        'type' => StockMovementType::Purchase->value,
+        'quantity_change' => -1,
+        'quantity_after' => 4,
     ]);
 });
 

@@ -65,31 +65,33 @@ test('dashboard sorts products by price descending', function () {
         );
 });
 
-test('dashboard sorts products by created_at', function () {
-    $admin = User::factory()->admin()->create();
-    $old = Product::factory()->create(['created_at' => now()->subDays(5)]);
-    $new = Product::factory()->create(['created_at' => now()]);
-
-    $this->actingAs($admin)->get('/admin/dashboard?sort=created_at&direction=asc')
-        ->assertInertia(fn ($page) => $page
-            ->where('products.data.0.id', $old->id)
-        );
-});
-
 test('dashboard ignores invalid sort columns', function () {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)->get('/admin/dashboard?sort=password')->assertStatus(200);
 });
 
-test('dashboard product data includes created_at and updated_at', function () {
+test('dashboard product data includes updated_at', function () {
     $admin = User::factory()->admin()->create();
     Product::factory()->create();
 
     $this->actingAs($admin)->get('/admin/dashboard')
         ->assertInertia(fn ($page) => $page
-            ->has('products.data.0.created_at')
             ->has('products.data.0.updated_at')
+        );
+});
+
+test('dashboard includes inventory summary', function () {
+    $admin = User::factory()->admin()->create();
+    Product::factory()->create(['quantity_available' => 12]);
+    Product::factory()->create(['quantity_available' => 4]);
+    Product::factory()->create(['quantity_available' => 0]);
+
+    $this->actingAs($admin)->get('/admin/dashboard')
+        ->assertInertia(fn ($page) => $page
+            ->where('inventorySummary.total_units', 16)
+            ->where('inventorySummary.low_stock_count', 1)
+            ->where('inventorySummary.out_of_stock_count', 1)
         );
 });
 

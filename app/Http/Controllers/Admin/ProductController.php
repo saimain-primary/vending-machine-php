@@ -39,14 +39,14 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        $this->productService->create($request->validated());
+        $this->productService->create($request->validated(), $request->user());
 
         return redirect()->route('admin.dashboard');
     }
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
-        $this->productService->update($product, $request->validated());
+        $this->productService->update($product, $request->validated(), $request->user());
 
         return redirect()->route('admin.dashboard');
     }

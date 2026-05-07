@@ -1,9 +1,8 @@
 <?php
 
+use App\Enums\StockMovementType;
 use App\Models\Product;
 use App\Models\User;
-
-// --- Store ---
 
 test('admin can create a product', function () {
     $admin = User::factory()->admin()->create();
@@ -18,6 +17,12 @@ test('admin can create a product', function () {
         'name' => 'New Cola',
         'price_in_mills' => 1500,
         'quantity_available' => 20,
+    ]);
+    $this->assertDatabaseHas('stock_movements', [
+        'user_id' => $admin->id,
+        'type' => StockMovementType::InitialStock->value,
+        'quantity_change' => 20,
+        'quantity_after' => 20,
     ]);
 });
 
@@ -127,8 +132,6 @@ test('creating a product with zero quantity is allowed', function () {
     $this->assertDatabaseHas('products', ['name' => 'Out of Stock Item', 'quantity_available' => 0]);
 });
 
-// --- Update ---
-
 test('admin can update a product name', function () {
     $admin = User::factory()->admin()->create();
     $product = Product::factory()->create(['name' => 'Old Name']);
@@ -160,6 +163,24 @@ test('admin can update product quantity', function () {
     ]);
 
     expect($product->fresh()->quantity_available)->toBe(25);
+    $this->assertDatabaseHas('stock_movements', [
+        'product_id' => $product->id,
+        'user_id' => $admin->id,
+        'type' => StockMovementType::ManualAdjustment->value,
+        'quantity_change' => 20,
+        'quantity_after' => 25,
+    ]);
+});
+
+test('updating product quantity to the same value does not create a stock movement', function () {
+    $admin = User::factory()->admin()->create();
+    $product = Product::factory()->create(['quantity_available' => 5]);
+
+    $this->actingAs($admin)->put("/admin/products/{$product->id}", [
+        'quantity_available' => 5,
+    ]);
+
+    $this->assertDatabaseEmpty('stock_movements');
 });
 
 test('updating a product name allows keeping the same name', function () {
@@ -193,8 +214,6 @@ test('customer cannot update a product', function () {
 
     $this->actingAs($user)->put("/admin/products/{$product->id}", ['name' => 'Hacked'])->assertForbidden();
 });
-
-// --- Destroy ---
 
 test('admin can delete a product', function () {
     $admin = User::factory()->admin()->create();

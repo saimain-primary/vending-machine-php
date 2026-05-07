@@ -28,7 +28,7 @@ class Product extends Model
             }
         });
     }
-    
+
     protected function casts(): array
     {
         return [
@@ -40,6 +40,11 @@ class Product extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 
     protected function price(): Attribute

@@ -7,38 +7,32 @@ use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 
-// Admin\ProductController is a thin layer: it takes a validated request,
-// forwards data to ProductService, then redirects. These tests verify that
-// contract without persisting anything to the database.
-
-// --- store() ---
-
 test('store delegates creation to the product service with the validated request data', function () {
     $validated = ['name' => 'New Cola', 'price' => '1.50', 'quantity_available' => 20];
 
     $service = Mockery::mock(ProductService::class);
-    $service->shouldReceive('create')->once()->with($validated)->andReturn(new Product());
+    $service->shouldReceive('create')->once()->with($validated, null)->andReturn(new Product);
 
     $request = Mockery::mock(StoreProductRequest::class);
     $request->shouldReceive('validated')->andReturn($validated);
+    $request->shouldReceive('user')->andReturn(null);
 
     (new ProductController($service))->store($request);
 });
 
 test('store redirects to the admin dashboard after creation', function () {
     $service = Mockery::mock(ProductService::class);
-    $service->shouldReceive('create')->andReturn(new Product());
+    $service->shouldReceive('create')->andReturn(new Product);
 
     $request = Mockery::mock(StoreProductRequest::class);
     $request->shouldReceive('validated')->andReturn(['name' => 'Cola', 'price' => '1.00', 'quantity_available' => 5]);
+    $request->shouldReceive('user')->andReturn(null);
 
     $response = (new ProductController($service))->store($request);
 
     expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->getTargetUrl())->toBe(route('admin.dashboard'));
 });
-
-// --- update() ---
 
 test('update delegates to the product service with the product and validated data', function () {
     $product = Product::factory()->make();
@@ -50,11 +44,13 @@ test('update delegates to the product service with the product and validated dat
         ->with(
             Mockery::on(fn ($p) => $p instanceof Product),
             $validated,
+            null,
         )
         ->andReturn($product);
 
     $request = Mockery::mock(UpdateProductRequest::class);
     $request->shouldReceive('validated')->andReturn($validated);
+    $request->shouldReceive('user')->andReturn(null);
 
     (new ProductController($service))->update($request, $product);
 });
@@ -67,6 +63,7 @@ test('update redirects to the admin dashboard after saving', function () {
 
     $request = Mockery::mock(UpdateProductRequest::class);
     $request->shouldReceive('validated')->andReturn(['price' => '2.00']);
+    $request->shouldReceive('user')->andReturn(null);
 
     $response = (new ProductController($service))->update($request, $product);
 
@@ -79,15 +76,14 @@ test('update passes all validated fields including partial updates', function ()
     $validated = ['quantity_available' => 99];
 
     $service = Mockery::mock(ProductService::class);
-    $service->shouldReceive('update')->once()->with(Mockery::any(), $validated)->andReturn($product);
+    $service->shouldReceive('update')->once()->with(Mockery::any(), $validated, null)->andReturn($product);
 
     $request = Mockery::mock(UpdateProductRequest::class);
     $request->shouldReceive('validated')->andReturn($validated);
+    $request->shouldReceive('user')->andReturn(null);
 
     (new ProductController($service))->update($request, $product);
 });
-
-// --- destroy() ---
 
 test('destroy delegates deletion to the product service', function () {
     $product = Product::factory()->make();

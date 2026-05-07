@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage, useHttp } from '@inertiajs/vue3'
 import { computed, onMounted, ref } from 'vue'
+import { recommendations as recommendationsUrl } from '@/actions/App/Http/Controllers/Api/V1/ProductController'
+import { show as showUrl, buy as buyUrl } from '@/actions/App/Http/Controllers/ProductController'
 import AppDialog from '@/components/AppDialog.vue'
 import AppLayout from '@/components/AppLayout.vue'
 import StockBadge from '@/components/StockBadge.vue'
-import { show as showUrl, buy as buyUrl } from '@/actions/App/Http/Controllers/ProductController'
-import { index as recommendationsUrl } from '@/actions/App/Http/Controllers/ProductRecommendationController'
 import { formatUSD } from '@/lib/utils'
 
 interface Product {
@@ -15,6 +15,10 @@ interface Product {
     price_in_mills: number
     quantity_available: number
     stock_status: string
+}
+
+interface ApiResponse<T> {
+    data?: T
 }
 
 const props = defineProps<{
@@ -33,8 +37,10 @@ const showGuestDialog = ref(false)
 function handleBuy() {
     if (!isAuthenticated.value) {
         showGuestDialog.value = true
+
         return
     }
+
     showConfirmDialog.value = true
 }
 
@@ -57,8 +63,10 @@ const recommendations = ref<Product[]>([])
 
 onMounted(() => {
     http.get(recommendationsUrl.url(props.product.slug), {
-        onSuccess: (data: any) => {
-            recommendations.value = data
+        onSuccess: (response: unknown) => {
+            const payload = response as ApiResponse<Product[]>
+
+            recommendations.value = payload.data ?? []
         },
     })
 })

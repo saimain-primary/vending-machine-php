@@ -4,17 +4,19 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Product;
 use App\Services\ProductRecommendationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly ProductRecommendationService $recommendationService) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
         $allowedSorts = ['name', 'price_in_mills', 'quantity_available'];
 
@@ -32,20 +34,21 @@ class ProductController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return ProductResource::collection($products);
+        return $this->respondWithCollection(ProductResource::collection($products), 'Products retrieved.');
     }
 
-    public function show(Product $product): ProductResource
+    public function show(Product $product): JsonResponse
     {
-        return new ProductResource($product);
+        return $this->respondWithResource(new ProductResource($product), 'Product retrieved.');
     }
 
     public function recommendations(Product $product): JsonResponse
     {
         $recommendations = $this->recommendationService->recommendationsFor($product);
 
-        return response()->json(
-            $recommendations->map(fn (Product $p) => (new ProductResource($p))->toArray(request()))
+        return $this->respondOk(
+            'Recommendations retrieved.',
+            $recommendations->map(fn (Product $p) => (new ProductResource($p))->toArray(request()))->values(),
         );
     }
 }

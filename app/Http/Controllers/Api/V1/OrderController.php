@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Http\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrderController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    use ApiResponse;
+
+    public function index(Request $request): JsonResponse
     {
         $orders = $request->user()
             ->transactions()
@@ -18,6 +21,6 @@ class OrderController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return OrderResource::collection($orders);
+        return $this->respondWithCollection(OrderResource::collection($orders), 'Orders retrieved.');
     }
 }

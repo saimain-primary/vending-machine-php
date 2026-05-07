@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdminOrderResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Transaction;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrderController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    use ApiResponse;
+
+    public function index(Request $request): JsonResponse
     {
         $orders = Transaction::query()
             ->with(['user', 'product'])
@@ -25,6 +28,6 @@ class OrderController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return AdminOrderResource::collection($orders);
+        return $this->respondWithCollection(AdminOrderResource::collection($orders), 'Orders retrieved.');
     }
 }

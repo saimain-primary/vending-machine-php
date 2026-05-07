@@ -7,7 +7,63 @@
 | **Base URL** | `http://vending-machine.test/api/v1` |
 | **Format** | JSON (`Content-Type: application/json`) |
 | **Auth** | Bearer token via Laravel Sanctum |
-| **Prices** | Stored in mills — divide by 1000 for the display value (6018 mills = $6.02) |
+| **Prices** | Stored in mills — divide by 1000 for the display value (1500 mills = $1.50) |
+
+---
+
+## Response Envelope
+
+Every response shares a consistent structure.
+
+**Success**
+```json
+{
+  "success": true,
+  "message": "Human-readable summary.",
+  "data": { }
+}
+```
+
+**Success with pagination** — `meta` and `links` are added for paginated collections:
+```json
+{
+  "success": true,
+  "message": "Human-readable summary.",
+  "data": [ ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 4,
+    "per_page": 15,
+    "total": 60,
+    "from": 1,
+    "to": 15
+  },
+  "links": {
+    "first": "http://vending-machine.test/api/v1/products?page=1",
+    "last": "http://vending-machine.test/api/v1/products?page=4",
+    "prev": null,
+    "next": "http://vending-machine.test/api/v1/products?page=2"
+  }
+}
+```
+
+**Error**
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+**Validation error (422)**
+```json
+{
+  "message": "The given data was invalid.",
+  "errors": {
+    "email": ["The email field is required."],
+    "password": ["The password field is required."]
+  }
+}
+```
 
 ---
 
@@ -30,37 +86,19 @@ Retry-After: 42          # only present on 429
 
 ---
 
-## Errors
-
-All errors return a JSON body. HTTP status codes follow standard semantics.
+## HTTP Status Codes
 
 | Status | Meaning |
 |---|---|
-| `400` | Bad request |
+| `200` | OK |
+| `201` | Created |
+| `204` | No content |
 | `401` | Unauthenticated — missing or invalid token |
 | `403` | Forbidden — authenticated but not authorized (e.g. non-admin) |
 | `404` | Resource not found |
 | `422` | Validation error or business rule violation |
 | `429` | Rate limit exceeded |
 | `500` | Server error |
-
-**Generic error**
-```json
-{
-  "message": "Unauthenticated."
-}
-```
-
-**Validation error (422)**
-```json
-{
-  "message": "The given data was invalid.",
-  "errors": {
-    "email": ["The email field is required."],
-    "password": ["The password field is required."]
-  }
-}
-```
 
 ---
 
@@ -95,13 +133,17 @@ curl -X POST http://vending-machine.test/api/v1/auth/login \
 **Example response — 201 Created**
 ```json
 {
-  "token": "1|abc123xyz...",
-  "token_type": "Bearer",
-  "user": {
-    "id": 2,
-    "name": "Customer User",
-    "email": "customer@vending.test",
-    "role": "customer"
+  "success": true,
+  "message": "Authenticated successfully.",
+  "data": {
+    "token": "1|abc123xyz...",
+    "token_type": "Bearer",
+    "user": {
+      "id": 2,
+      "name": "Customer User",
+      "email": "customer@vending.test",
+      "role": "customer"
+    }
   }
 }
 ```
@@ -113,6 +155,13 @@ curl -X POST http://vending-machine.test/api/v1/auth/login \
   "errors": {
     "email": ["These credentials do not match our records."]
   }
+}
+```
+
+**Example error — 429 Rate limit exceeded**
+```json
+{
+  "message": "Too Many Attempts."
 }
 ```
 
@@ -134,6 +183,7 @@ curl -X POST http://vending-machine.test/api/v1/auth/logout \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
   "message": "Token revoked successfully."
 }
 ```
@@ -173,6 +223,8 @@ curl "http://vending-machine.test/api/v1/products?sort=price_in_mills&direction=
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Products retrieved.",
   "data": [
     {
       "id": 12,
@@ -186,19 +238,19 @@ curl "http://vending-machine.test/api/v1/products?sort=price_in_mills&direction=
       "updated_at": "2026-05-07T04:03:21.000000Z"
     }
   ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 4,
+    "per_page": 5,
+    "total": 20,
+    "from": 1,
+    "to": 5
+  },
   "links": {
     "first": "http://vending-machine.test/api/v1/products?page=1",
     "last": "http://vending-machine.test/api/v1/products?page=4",
     "prev": null,
     "next": "http://vending-machine.test/api/v1/products?page=2"
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 4,
-    "per_page": 5,
-    "to": 5,
-    "total": 20
   }
 }
 ```
@@ -228,6 +280,8 @@ curl "http://vending-machine.test/api/v1/products/cola-330ml" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Product retrieved.",
   "data": {
     "id": 12,
     "name": "Cola 330ml",
@@ -265,33 +319,37 @@ curl "http://vending-machine.test/api/v1/products/cola-330ml/recommendations" \
 
 **Example response — 200 OK**
 ```json
-[
-  {
-    "id": 7,
-    "name": "Water 500ml",
-    "slug": "water-500ml",
-    "price_in_mills": 1000,
-    "price": 1.0,
-    "quantity_available": 18,
-    "stock_status": "in_stock",
-    "created_at": "2026-05-07T04:03:21.000000Z",
-    "updated_at": "2026-05-07T04:03:21.000000Z"
-  },
-  {
-    "id": 3,
-    "name": "Orange Juice 250ml",
-    "slug": "orange-juice-250ml",
-    "price_in_mills": 2000,
-    "price": 2.0,
-    "quantity_available": 5,
-    "stock_status": "low_stock",
-    "created_at": "2026-05-07T04:03:21.000000Z",
-    "updated_at": "2026-05-07T04:03:21.000000Z"
-  }
-]
+{
+  "success": true,
+  "message": "Recommendations retrieved.",
+  "data": [
+    {
+      "id": 7,
+      "name": "Water 500ml",
+      "slug": "water-500ml",
+      "price_in_mills": 1000,
+      "price": 1.0,
+      "quantity_available": 18,
+      "stock_status": "in_stock",
+      "created_at": "2026-05-07T04:03:21.000000Z",
+      "updated_at": "2026-05-07T04:03:21.000000Z"
+    },
+    {
+      "id": 3,
+      "name": "Orange Juice 250ml",
+      "slug": "orange-juice-250ml",
+      "price_in_mills": 2000,
+      "price": 2.0,
+      "quantity_available": 5,
+      "stock_status": "low_stock",
+      "created_at": "2026-05-07T04:03:21.000000Z",
+      "updated_at": "2026-05-07T04:03:21.000000Z"
+    }
+  ]
+}
 ```
 
-Returns an empty array `[]` when no other in-stock products exist.
+Returns `"data": []` when no other in-stock products exist.
 
 ---
 
@@ -301,7 +359,7 @@ Returns an empty array `[]` when no other in-stock products exist.
 
 Paginated purchase history for the authenticated user.
 
-**Auth:** Required  
+**Auth:** Required
 **Rate limit:** `api-user` — 120 req/min per user
 
 **Example request**
@@ -314,6 +372,8 @@ curl "http://vending-machine.test/api/v1/orders" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Orders retrieved.",
   "data": [
     {
       "id": 1,
@@ -326,19 +386,19 @@ curl "http://vending-machine.test/api/v1/orders" \
       "purchased_at": "2026-05-07T04:22:20.000000Z"
     }
   ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 15,
+    "total": 1,
+    "from": 1,
+    "to": 1
+  },
   "links": {
     "first": "http://vending-machine.test/api/v1/orders?page=1",
     "last": "http://vending-machine.test/api/v1/orders?page=1",
     "prev": null,
     "next": null
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 1,
-    "per_page": 15,
-    "to": 1,
-    "total": 1
   }
 }
 ```
@@ -358,7 +418,7 @@ When the product has been deleted, `product_name` returns `"Deleted product"` an
 
 Purchase one unit of a product.
 
-**Auth:** Required  
+**Auth:** Required
 **Rate limit:** `api-user` (120/min) + `api-purchase` (10/min per user)
 
 **Example request**
@@ -371,11 +431,14 @@ curl -X POST "http://vending-machine.test/api/v1/products/cola-330ml/buy" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
   "message": "You purchased Cola 330ml.",
-  "product": {
-    "id": 12,
-    "name": "Cola 330ml",
-    "quantity_available": 23
+  "data": {
+    "product": {
+      "id": 12,
+      "name": "Cola 330ml",
+      "quantity_available": 23
+    }
   }
 }
 ```
@@ -400,7 +463,7 @@ curl -X POST "http://vending-machine.test/api/v1/products/cola-330ml/buy" \
 
 All admin endpoints require authentication with an admin-role account.
 
-**Auth:** Required (admin)  
+**Auth:** Required (admin)
 **Rate limit:** `api-user` — 120 req/min per user
 
 **Example error — 403 Not admin**
@@ -435,6 +498,8 @@ curl "http://vending-machine.test/api/v1/admin/products?sort=created_at&directio
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Products retrieved.",
   "data": [
     {
       "id": 12,
@@ -448,8 +513,20 @@ curl "http://vending-machine.test/api/v1/admin/products?sort=created_at&directio
       "updated_at": "2026-05-07T04:03:21.000000Z"
     }
   ],
-  "links": { ... },
-  "meta": { ... }
+  "meta": {
+    "current_page": 1,
+    "last_page": 3,
+    "per_page": 15,
+    "total": 40,
+    "from": 1,
+    "to": 15
+  },
+  "links": {
+    "first": "http://vending-machine.test/api/v1/admin/products?page=1",
+    "last": "http://vending-machine.test/api/v1/admin/products?page=3",
+    "prev": null,
+    "next": "http://vending-machine.test/api/v1/admin/products?page=2"
+  }
 }
 ```
 
@@ -483,6 +560,8 @@ curl -X POST "http://vending-machine.test/api/v1/admin/products" \
 **Example response — 201 Created**
 ```json
 {
+  "success": true,
+  "message": "Product created.",
   "data": {
     "id": 12,
     "name": "Cola 330ml",
@@ -524,6 +603,8 @@ curl "http://vending-machine.test/api/v1/admin/products/12" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Product retrieved.",
   "data": {
     "id": 12,
     "name": "Cola 330ml",
@@ -535,6 +616,13 @@ curl "http://vending-machine.test/api/v1/admin/products/12" \
     "created_at": "2026-05-07T04:03:21.000000Z",
     "updated_at": "2026-05-07T04:03:21.000000Z"
   }
+}
+```
+
+**Example error — 404 Not found**
+```json
+{
+  "message": "No query results for model [App\\Models\\Product] 999."
 }
 ```
 
@@ -566,6 +654,8 @@ curl -X PUT "http://vending-machine.test/api/v1/admin/products/12" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Product updated.",
   "data": {
     "id": 12,
     "name": "Cola 330ml",
@@ -596,6 +686,7 @@ curl -X DELETE "http://vending-machine.test/api/v1/admin/products/12" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
   "message": "Product deleted."
 }
 ```
@@ -615,7 +706,7 @@ curl -X DELETE "http://vending-machine.test/api/v1/admin/products/12" \
 
 Paginated list of all customer orders with customer and product details.
 
-**Auth:** Required (admin)  
+**Auth:** Required (admin)
 **Rate limit:** `api-user` — 120 req/min per user
 
 **Query parameters**
@@ -634,6 +725,8 @@ curl "http://vending-machine.test/api/v1/admin/orders?search=cola" \
 **Example response — 200 OK**
 ```json
 {
+  "success": true,
+  "message": "Orders retrieved.",
   "data": [
     {
       "id": 1,
@@ -654,19 +747,19 @@ curl "http://vending-machine.test/api/v1/admin/orders?search=cola" \
       "purchased_at": "2026-05-07T04:22:20.000000Z"
     }
   ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 1,
+    "per_page": 15,
+    "total": 1,
+    "from": 1,
+    "to": 1
+  },
   "links": {
     "first": "http://vending-machine.test/api/v1/admin/orders?page=1",
     "last": "http://vending-machine.test/api/v1/admin/orders?page=1",
     "prev": null,
     "next": null
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 1,
-    "per_page": 15,
-    "to": 1,
-    "total": 1
   }
 }
 ```

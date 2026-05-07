@@ -6,17 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
+    use ApiResponse;
+
     public function __construct(private readonly ProductService $productService) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): JsonResponse
     {
         $allowedSorts = ['name', 'price_in_mills', 'quantity_available', 'created_at', 'updated_at'];
 
@@ -34,34 +36,32 @@ class ProductController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return ProductResource::collection($products);
+        return $this->respondWithCollection(ProductResource::collection($products), 'Products retrieved.');
     }
 
     public function store(StoreProductRequest $request): JsonResponse
     {
         $product = $this->productService->create($request->validated());
 
-        return (new ProductResource($product))
-            ->response()
-            ->setStatusCode(201);
+        return $this->respondWithResource(new ProductResource($product), 'Product created.', 201);
     }
 
-    public function show(Product $product): ProductResource
+    public function show(Product $product): JsonResponse
     {
-        return new ProductResource($product);
+        return $this->respondWithResource(new ProductResource($product), 'Product retrieved.');
     }
 
-    public function update(UpdateProductRequest $request, Product $product): ProductResource
+    public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
         $updated = $this->productService->update($product, $request->validated());
 
-        return new ProductResource($updated);
+        return $this->respondWithResource(new ProductResource($updated), 'Product updated.');
     }
 
     public function destroy(Product $product): JsonResponse
     {
         $this->productService->delete($product);
 
-        return response()->json(['message' => 'Product deleted.']);
+        return $this->respondOk('Product deleted.');
     }
 }

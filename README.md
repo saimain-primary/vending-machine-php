@@ -22,7 +22,7 @@ php artisan migrate --seed
 composer run dev
 ```
 
-The app is served by Laravel Herd at `http://vending-machine.test`.
+Production URL: `https://vending-machine.on-forge.com/`.
 
 ## Seeded Accounts
 
@@ -41,7 +41,7 @@ php artisan test --compact
 
 A versioned REST API is available for external frontend integrations.
 
-- **Base URL:** `http://vending-machine.test/api/v1`
+- **Base URL:** `https://vending-machine.on-forge.com/api/v1`
 - **Auth:** Bearer token (Sanctum)
 - **Docs:** [docs/api.md](docs/api.md)
 

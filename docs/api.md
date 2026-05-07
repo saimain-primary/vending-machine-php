@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Base URL** | `http://vending-machine.test/api/v1` |
+| **Base URL** | `https://vending-machine.on-forge.com/api/v1` |
 | **Format** | JSON (`Content-Type: application/json`) |
 | **Auth** | Bearer token via Laravel Sanctum |
 | **Prices** | Stored in mills — divide by 1000 for the display value (1500 mills = $1.50) |
@@ -39,10 +39,10 @@ Every response shares a consistent structure.
     "to": 15
   },
   "links": {
-    "first": "http://vending-machine.test/api/v1/products?page=1",
-    "last": "http://vending-machine.test/api/v1/products?page=4",
+    "first": "https://vending-machine.on-forge.com/api/v1/products?page=1",
+    "last": "https://vending-machine.on-forge.com/api/v1/products?page=4",
     "prev": null,
-    "next": "http://vending-machine.test/api/v1/products?page=2"
+    "next": "https://vending-machine.on-forge.com/api/v1/products?page=2"
   }
 }
 ```
@@ -120,7 +120,7 @@ Exchange credentials for a Sanctum bearer token.
 
 **Example request**
 ```bash
-curl -X POST http://vending-machine.test/api/v1/auth/login \
+curl -X POST https://vending-machine.on-forge.com/api/v1/auth/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{
@@ -175,7 +175,7 @@ Revoke the current bearer token.
 
 **Example request**
 ```bash
-curl -X POST http://vending-machine.test/api/v1/auth/logout \
+curl -X POST https://vending-machine.on-forge.com/api/v1/auth/logout \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -216,7 +216,7 @@ Paginated product catalog. No authentication required.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/products?sort=price_in_mills&direction=asc&per_page=5" \
+curl "https://vending-machine.on-forge.com/api/v1/products?sort=price_in_mills&direction=asc&per_page=5" \
   -H "Accept: application/json"
 ```
 
@@ -247,10 +247,10 @@ curl "http://vending-machine.test/api/v1/products?sort=price_in_mills&direction=
     "to": 5
   },
   "links": {
-    "first": "http://vending-machine.test/api/v1/products?page=1",
-    "last": "http://vending-machine.test/api/v1/products?page=4",
+    "first": "https://vending-machine.on-forge.com/api/v1/products?page=1",
+    "last": "https://vending-machine.on-forge.com/api/v1/products?page=4",
     "prev": null,
-    "next": "http://vending-machine.test/api/v1/products?page=2"
+    "next": "https://vending-machine.on-forge.com/api/v1/products?page=2"
   }
 }
 ```
@@ -273,7 +273,7 @@ Single product detail by slug.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/products/cola-330ml" \
+curl "https://vending-machine.on-forge.com/api/v1/products/cola-330ml" \
   -H "Accept: application/json"
 ```
 
@@ -313,7 +313,7 @@ Up to 4 in-stock products recommended alongside the given product, ordered by po
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/products/cola-330ml/recommendations" \
+curl "https://vending-machine.on-forge.com/api/v1/products/cola-330ml/recommendations" \
   -H "Accept: application/json"
 ```
 
@@ -364,7 +364,7 @@ Paginated purchase history for the authenticated user.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/orders" \
+curl "https://vending-machine.on-forge.com/api/v1/orders" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -395,8 +395,8 @@ curl "http://vending-machine.test/api/v1/orders" \
     "to": 1
   },
   "links": {
-    "first": "http://vending-machine.test/api/v1/orders?page=1",
-    "last": "http://vending-machine.test/api/v1/orders?page=1",
+    "first": "https://vending-machine.on-forge.com/api/v1/orders?page=1",
+    "last": "https://vending-machine.on-forge.com/api/v1/orders?page=1",
     "prev": null,
     "next": null
   }
@@ -423,7 +423,7 @@ Purchase one unit of a product.
 
 **Example request**
 ```bash
-curl -X POST "http://vending-machine.test/api/v1/products/cola-330ml/buy" \
+curl -X POST "https://vending-machine.on-forge.com/api/v1/products/cola-330ml/buy" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -490,7 +490,7 @@ Paginated product list with full detail for admin management.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/admin/products?sort=created_at&direction=desc" \
+curl "https://vending-machine.on-forge.com/api/v1/admin/products?sort=created_at&direction=desc" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -522,10 +522,10 @@ curl "http://vending-machine.test/api/v1/admin/products?sort=created_at&directio
     "to": 15
   },
   "links": {
-    "first": "http://vending-machine.test/api/v1/admin/products?page=1",
-    "last": "http://vending-machine.test/api/v1/admin/products?page=3",
+    "first": "https://vending-machine.on-forge.com/api/v1/admin/products?page=1",
+    "last": "https://vending-machine.on-forge.com/api/v1/admin/products?page=3",
     "prev": null,
-    "next": "http://vending-machine.test/api/v1/admin/products?page=2"
+    "next": "https://vending-machine.on-forge.com/api/v1/admin/products?page=2"
   }
 }
 ```
@@ -546,7 +546,7 @@ Create a new product.
 
 **Example request**
 ```bash
-curl -X POST "http://vending-machine.test/api/v1/admin/products" \
+curl -X POST "https://vending-machine.on-forge.com/api/v1/admin/products" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..." \
@@ -595,7 +595,7 @@ Retrieve a single product by ID.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/admin/products/12" \
+curl "https://vending-machine.on-forge.com/api/v1/admin/products/12" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -642,7 +642,7 @@ Update an existing product. All fields are optional — send only the fields to 
 
 **Example request**
 ```bash
-curl -X PUT "http://vending-machine.test/api/v1/admin/products/12" \
+curl -X PUT "https://vending-machine.on-forge.com/api/v1/admin/products/12" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..." \
@@ -678,7 +678,7 @@ Delete a product. Fails if the product has existing orders.
 
 **Example request**
 ```bash
-curl -X DELETE "http://vending-machine.test/api/v1/admin/products/12" \
+curl -X DELETE "https://vending-machine.on-forge.com/api/v1/admin/products/12" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -717,7 +717,7 @@ Paginated list of all customer orders with customer and product details.
 
 **Example request**
 ```bash
-curl "http://vending-machine.test/api/v1/admin/orders?search=cola" \
+curl "https://vending-machine.on-forge.com/api/v1/admin/orders?search=cola" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|abc123xyz..."
 ```
@@ -756,8 +756,8 @@ curl "http://vending-machine.test/api/v1/admin/orders?search=cola" \
     "to": 1
   },
   "links": {
-    "first": "http://vending-machine.test/api/v1/admin/orders?page=1",
-    "last": "http://vending-machine.test/api/v1/admin/orders?page=1",
+    "first": "https://vending-machine.on-forge.com/api/v1/admin/orders?page=1",
+    "last": "https://vending-machine.on-forge.com/api/v1/admin/orders?page=1",
     "prev": null,
     "next": null
   }
